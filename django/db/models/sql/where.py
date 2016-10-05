@@ -274,6 +274,16 @@ class WhereNode(tree.Node):
             lhs = qn(name)
         return connection.ops.field_cast_sql(db_type, internal_type) % lhs
 
+    def get_source_expressions(self):
+        sources = []
+        for child in self.children:
+            sources.append(child)
+        return sources
+
+    def set_source_expressions(self, children):
+        assert len(children) == len(self.children)
+        self.children = children
+
     def relabel_aliases(self, change_map):
         """
         Relabels the alias values of any children. 'change_map' is a dictionary
@@ -322,6 +332,13 @@ class WhereNode(tree.Node):
     @cached_property
     def contains_aggregate(self):
         return self._contains_aggregate(self)
+
+    @property
+    def is_summary(self):
+        for obj in self.children:
+            if obj.is_summary:
+                return True
+        return False
 
 
 class EmptyWhere(WhereNode):
